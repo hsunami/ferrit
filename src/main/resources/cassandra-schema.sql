@@ -1,6 +1,3 @@
-# Ferrit Cassandra CQL Schema
-# Since January 2014
-
 CREATE KEYSPACE ferrit WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': 3};
 USE ferrit;
 
@@ -90,4 +87,3 @@ CREATE TABLE fetch_log (
   fetches int,
   PRIMARY KEY (job_id, log_time, uri)
 ) WITH CLUSTERING ORDER BY (log_time DESC);
-

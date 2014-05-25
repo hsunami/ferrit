@@ -43,6 +43,10 @@ Build and Run
 There is no executable Jar with the project. You should checkout the project and build it.
 Before starting Ferrit make sure Cassandra is already running.
 
+> On the first occasion you start Cassandra you need to create a new keyspace and tables for Ferrit.
+See the [Cassandra Schema File](https://raw.githubusercontent.com/reggoodwin/ferrit/master/src/main/resources/cassandra-schema.sql)
+Open the CQL console and paste the contents of the above file into it.
+
 You can build/run Ferrit one of two ways:
 
 (1) Run from within sbt (uses the excellent Spray [sbt-revolver](https://github.com/spray/sbt-revolver) plugin):
