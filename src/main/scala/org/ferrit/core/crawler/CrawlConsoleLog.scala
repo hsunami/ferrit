@@ -128,8 +128,11 @@ class CrawlConsoleLog extends Actor {
     val w = 80
     val hw = w / 2
 
+    val outcome = job.outcome.getOrElse("Unknown")
+    val message = job.message.getOrElse("No Message")
+
     val lines = List(
-  
+
       List(
         "",
         line("-", w),
@@ -138,7 +141,7 @@ class CrawlConsoleLog extends Actor {
         "",
         lcell("Crawler name:", 16," ") + "[" + job.crawlerName + "]",
         lcell("Stop time:", 16," ") + "[" + new DateTime + "]",
-        lcell("Crawl outcome:", 16," ") + "[" + job.outcome.get + "]",
+        lcell("Crawl outcome:", 16," ") + s"[$outcome, $message]",
         "",
         lcell("Duration: ", hw, ".") + rcell(" " + formatElapsedTime(duration.getMillis), hw, "."),
         lcell("Avg fetch time: ", hw, ".") + rcell(" " + formatElapsedTime(avgFetchTime.getMillis), hw, "."),
