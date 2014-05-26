@@ -1,38 +1,43 @@
 About
 -----
 
-Ferrit is an API driven web crawler service written in Scala using [Akka](http://akka.io), [Spray.IO](http://spray.io) and [Cassandra](http://cassandra.apache.org).
+Hi and welcome to the Ferrit project, an API driven web crawler service written in Scala using [Akka](http://akka.io), [Spray.IO](http://spray.io) and [Cassandra](http://cassandra.apache.org).
 
-It is a personal project and not meant for production use.
+I wrote Ferrit to help me learn more about small service design using Akka and to help up my game with the *Functional Reactive* programming style.
 
-If you are learning about web crawlers I think you will find this project interesting.
-
-Other great web crawler projects that have influenced the design include: [Apache Nutch](https://nutch.apache.org), [Scrapy](http://scrapy.org) and [Crawler4J](https://code.google.com/p/crawler4j).
+If you are also learning about crawlers, Scala or Akka then I hope you find this project interesting.
 
 
 Features
 --------
 
-* Designed for [focused web crawling](http://en.wikipedia.org/wiki/Focused_crawler) with separate crawl configurations per website
-* REST/JSON API for crawler configuration and starting/stopping jobs
-* URI filtering to accept/reject URIs according to rules (using regular expressions)
-* URI filter tests can be stored with configurations to guarantee rules work as expected
-* Extracts links from HTML and CSS content types (uses [Jsoup](http://jsoup.org))
-* Crawl depth is supported
-* Supports the [Robots Exclusion Standard](http://www.robotstxt.org) (robots.txt)
-* Supports a custom crawl delay per job but always defers to the crawl-delay directive in robots.txt if found
-* Requires a [User-agent](http://en.wikipedia.org/wiki/User_agent#Format_for_automated_agents_.28bots.29) property be set to ensure polite crawling
-* [URI normalization](http://en.wikipedia.org/wiki/URL_normalization) is applied to links to reduce fetching of duplicate resources
-* Supports crawl timeout and max download settings to prevent crawl jobs running on indefinitely
+* Designed to be a [focused web crawler](http://en.wikipedia.org/wiki/Focused_crawler) ideally having separate crawl configurations per website
+* A REST/JSON API for crawler configuration and starting/stopping jobs
+* URI filters can be tested with test case rules to ensure that resources will either be fetched or not fetched as expected (have not seen this feature in an open source crawler yet)
+* Extracts links from HTML and CSS using the excellent [Jsoup](http://jsoup.org)
 * Fetched content is stored in a database (Cassandra)
-* Can run multiple crawl jobs concurrently
+
+
+Degrees of Sophistication
+-------------------------
+
+Having seen several crawler projects on GitHub I like to think of a web crawler project as progressing through several stages towards a higher level of sophistication. The simplest kind tend to be all-in-one-file and more sophisticated kinds bring in architectural choices. For me the most important foundation is to build a crawler that cares about politeness first.
+
+* *Politeness*: this crawler supports the [Robots Exclusion Standard](http://www.robotstxt.org) (robots.txt) and although a custom fetch delay can be set per job the final decision should be with the webmaster as to how fast you are allowed to crawl their site (the crawl-delay directive in robots.txt). Crawlers require a [User-agent](http://en.wikipedia.org/wiki/User_agent#Format_for_automated_agents_.28bots.29) property be set so that webmasters can contact the owner if necessary.
+* *Crawl depth* is supported as a way to restrict fetches to the top N pages of a given website
+* *URI filtering* is handy for deciding which resources should be fetched, e.g. fetch only HTML pages (uses accept/reject rules with regular expressions).
+* *URI normalization* - this is tricky to get right and I'm not entirely there yet. URI normalization is required to help reduce fetching of duplicate resources.
+* *Spider trap* prevention: for various reasons crawl jobs can run on indefinitely. Crawlers can be configured with basic safeguards such as a crawl timeout and max fetches.
+* *Concurrent job* support: this is pretty basic so far, needs more exploration.
+
 
 Requirements
 ------------
 
-This project is still at the "builds on my machine" stage (64 bit Windows 8) and needs to be independently tested in a CI environment.
+This project is still at the "builds on my machine" stage (64 bit Windows 8) and needs to be independently tested in a Linux CI environment.
 
 * Java 7/8
+* Scala 2.10
 * SBT 0.13.2
 * Cassandra 2.0.3
 
@@ -40,12 +45,11 @@ This project is still at the "builds on my machine" stage (64 bit Windows 8) and
 Build and Run
 -------------
 
-There is no executable Jar with the project. You should checkout the project and build it.
+There is no executable Jar with the project. You will have to checkout this project and build it with sbt.
 Before starting Ferrit make sure Cassandra is already running.
 
-> On the first occasion you start Cassandra you need to create a new keyspace and tables for Ferrit.
-See the [Cassandra Schema File](https://raw.githubusercontent.com/reggoodwin/ferrit/master/src/main/resources/cassandra-schema.sql)
-Open the CQL console and paste the contents of the above file into it.
+> The first time you run Ferrit you'll need to create a new keyspace and tables in Cassandra.
+So open this [Cassandra schema file](https://raw.githubusercontent.com/reggoodwin/ferrit/master/src/main/resources/cassandra-schema.sql), open the CQL console and paste the contents of the file into it.
 
 You can build/run Ferrit one of two ways:
 
@@ -97,12 +101,14 @@ A succesful startup will display:
 API Documentation
 -----------------
 
-> To view API docs, start Ferrit and visit http://localhost:8080 in your browser.
+> To view API documentation, start Ferrit and visit http://localhost:8080 in your browser. I will likely move them over to this page in a future update.
 
-Run your First Crawl Job
+
+How to Run a Crawl Job
 ------------------------
 
-Here's the 5 minute guide to creating a crawler configuration and starting a crawl job.
+Here's the 5 minute guide to using the API to create a crawler configuration and start a crawl job.
+(I also have a user interface project on the way which is way preferable to operating with curl.)
 
 (1) First create a new crawler configuration.
 
@@ -149,23 +155,23 @@ After you POST this configuration, copy the crawlerId property returned in the J
 The job should start and finish after about a minute because only 10 resources are fetched.
 Check the Ferrit console log for progress ...
 
-> IMPORTANT
-Web crawlers have a bad reputation on the Internet because they often crawl too aggressively so please use Ferrit politely.
-For testing purposes the maximum number of fetches is set to an artificially low 10 pages in the example above.
-Please don't increase this, unless coincidentally you really intend to be crawling the W3C website!
+Good luck!
+
+> IMPORTANT -
+web crawlers tend to get a bad reputation because they often crawl too aggressively so please use Ferrit politely. For testing purposes the maximum number of fetches is set to an artificially low 10 pages in the example above. Please don't increase this, unless coincidentally you really intend to be crawling the W3C website! I prefer to test crawler functionality against a small website running on Apache locally first before scaling up to real websites.
 
 
 What's Missing?
 ----------------
 
-* Usability! Yes, running a crawler with curl is no fun and error prone. Fortunately there is a user interface project in the works ...
-* No [web scraping](http://en.wikipedia.org/wiki/Web_scraper) functionality added (yet), apart from automatic link extraction.
+* Usability! Yes, running a crawler with curl is no fun and rather error prone. Fortunately there is a user interface project in the works that will be sure to work wonders ...
+* No [web scraping](http://en.wikipedia.org/wiki/Web_scraper) functionality added (yet), apart from automatic link extraction. So in a nutshell you can't actually do anything with this crawler except crawl.
 * No content deduplication support
-* Redirect responses from servers not (yet) handled properly
+* Redirect responses from servers are not (yet) handled properly
 * Job clustering not supported
 * No backpressure support in the Journal (not really an issue at present because Cassandra writes are so fast)
 * JavaScript in HTML pages is not evaluated which means that links in dynamically generated DOM content are not discovered
-* Etc ...
+
 
 Where's the User Interface?
 ---------------------------
@@ -174,8 +180,17 @@ I have a web interface for this service in another Play Framework / AngularJS pr
 The code for that other project needs to be cleaned up before publishing.
 
 
+
+Influences
+----------
+
+I guess you'll already know about some of those other great open source web crawler projects out there which have influenced this design. First there is the granddaddy of the Java pack [Apache Nutch](https://nutch.apache.org). Then also there is the mature [Scrapy](http://scrapy.org) project which makes me yearn to be able to program Python! I also found that when starting out for the first time learning about crawlers that [Crawler4J](https://code.google.com/p/crawler4j) project was very easy to get into and there is not too much code to study.
+
+
 Known Issues
 ------------
 
-* For some websites the crawl job will just abort. I have no more information and will need to fix.
+Tip of the iceberg:
+
+* Most of the websites I have crawled are fine except for a few where the crawl job just aborts. I need to to fix that.
 * Not all links extracted from pages can be parsed. When unparseable links are found they are logged but not added to the Frontier (aka queue) for fetching.
