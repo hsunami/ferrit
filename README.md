@@ -96,8 +96,10 @@ The host and port settings can be changed in: src/main/resources/application.con
 
     app {
       server {
-      host = "127.0.0.1"
-      port = 6464
+        host = "127.0.0.1"
+        port = 6464
+      }
+      ...
     }
 
 
