@@ -42,11 +42,6 @@ case class CrawlConfig (
    * name when crawling multiple sites.
    */
   crawlerName: String,
-
-  /**
-   * If true the directives in robots.txt will be observed.
-   */
-  obeyRobotRules: Boolean,
   
   /**
    * A custom politeness setting to use if the 'Crawl-delay' directive is

@@ -28,7 +28,6 @@ class ITestCrawlerDAO extends AbstractDAOTest with ShouldMatchers {
           Accept(site.r)
         )),
         tests = Some(Seq(s"accept: $site")),
-        obeyRobotRules = true,
         crawlDelayMillis = 0,
         crawlTimeoutMillis = 10000,
         maxDepth = Int.MaxValue,

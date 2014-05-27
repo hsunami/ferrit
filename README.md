@@ -140,7 +140,6 @@ After you POST this configuration, copy the crawlerId property returned in the J
             "should reject: http://www.w3.org/2012/10/wplogo_transparent.png"
         ],
         "userAgent": #CHANGE ME#,
-        "obeyRobotRules": true,
         "maxDepth": 2,
         "maxFetches": 10,
         "maxQueueSize": 1000,

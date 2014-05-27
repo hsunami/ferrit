@@ -66,7 +66,6 @@ class TestCrawlerManager extends FlatSpec with ShouldMatchers with BeforeAndAfte
       seeds = Seq(CrawlUri(uri)),
       uriFilter = new FirstMatchUriFilter(Seq(Accept(uri.r))),
       tests = None,
-      obeyRobotRules = true,
       crawlDelayMillis = 30, // crawls complete too quickly if 0
       crawlTimeoutMillis = 20000,
       maxDepth = Int.MaxValue,
@@ -300,7 +299,6 @@ class TestCrawlerManager extends FlatSpec with ShouldMatchers with BeforeAndAfte
         seeds = Seq(CrawlUri(site)),
         uriFilter = new FirstMatchUriFilter(Seq(Accept(site.r))),
         tests = None,
-        obeyRobotRules = true,
         crawlDelayMillis = 0, // <--- controls speed of test
         crawlTimeoutMillis = 20000,
         maxDepth = Int.MaxValue,

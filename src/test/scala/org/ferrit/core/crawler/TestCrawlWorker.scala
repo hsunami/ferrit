@@ -108,7 +108,6 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       seeds = seedsFor(uri),
       uriFilter = uriFilterFor(uri),
       tests = Some(Seq(s"accept: $uri")),
-      obeyRobotRules = true,
       crawlDelayMillis = 0,
       crawlTimeoutMillis = 10000,
       maxDepth = Int.MaxValue,
@@ -367,57 +366,6 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
         job.fetchCounters should equal (Map(
           FetchAttempts -> 2, // 3 - 1 blocked
           FetchSucceeds -> 2
-        ))
-        true
-      case _ => false
-    }
-
-  }
-
-  it should "fetch everything when robot exclusion checks are disabled" in new CrawlTest {
-
-    val site = "http://site.net"
-    val page = HtmlResponse(html.format("",
-            """<a href="page1.html">link</a>
-               <a href="page2.html">link</a>"""))
-    val responses = Map(
-              s"$site" -> page,
-              s"$site/page2.html" -> page,
-              s"$site/page1.html" -> page)
-
-    val robotsCache = new MockRobotRulesCache() {
-      override def allow(ua: String, reader: UriReader) = {
-        Future.successful(false) // disallow all
-      }
-    }
-
-    val config = makeConfig(site).copy(obeyRobotRules = false)
-
-    val proxy = makeCrawlerProxy(Props(
-      classOf[CrawlWorker], 
-      makeJob(config),
-      config,
-      new InMemoryFrontier,
-      new InMemoryUriCache,
-      new ParrotHttpClient(responses),
-      makeRobotRulesCache(robotsCache),
-      MultiParser.default,
-      new DefaultGameOver
-    ))
-
-    proxy ! Listen(self)
-    proxy ! Run
-
-    fishForMessage(1.second) {
-      case FetchDecision(_, RobotsExcluded) => 
-        fail("nothing should be blocked")
-      case _ => true
-    }
-    fishForMessage(1.second) {
-      case Stopped(CompletedOkay, job) => 
-        job.fetchCounters should equal (Map(
-          FetchAttempts -> 3,
-          FetchSucceeds -> 3
         ))
         true
       case _ => false

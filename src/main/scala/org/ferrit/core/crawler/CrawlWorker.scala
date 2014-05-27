@@ -195,7 +195,7 @@ class CrawlWorker(
       } else if (!config.uriFilter.accept(uri)) {
         Future.successful((f, UriFilterRejected))
 
-      } else if (config.obeyRobotRules) {
+      } else {
         robotRulesCache
           .ask(Allow(config.getUserAgent, uri.reader))(robotRequestTimeout)
           .mapTo[Boolean]
@@ -203,8 +203,6 @@ class CrawlWorker(
             val d = if (ok) OkayToFetch else RobotsExcluded
             (f, d) // resolved as ...
           })
-      } else {
-        Future.successful((f, OkayToFetch))
       }
 
     } catch {
@@ -349,17 +347,13 @@ class CrawlWorker(
    */
   private def delayFor(uri: CrawlUri):Future[Long] = {
     val defDelay = config.crawlDelayMillis
-    if (config.obeyRobotRules) {
-      robotRulesCache
-        .ask(DelayFor(config.getUserAgent, uri.reader))(robotRequestTimeout)
-        .mapTo[Option[Int]]
-        .map(_ match {
-            case Some(rulesDelay) => Math.max(rulesDelay, defDelay)
-            case None => defDelay
-        })
-    } else {
-      Future.successful(defDelay)
-    }
+    robotRulesCache
+      .ask(DelayFor(config.getUserAgent, uri.reader))(robotRequestTimeout)
+      .mapTo[Option[Int]]
+      .map(_ match {
+          case Some(rulesDelay) => Math.max(rulesDelay, defDelay)
+          case None => defDelay
+      })
   }
 
   /**

@@ -18,7 +18,6 @@ class TestCrawlConfigValidator extends FlatSpec with ShouldMatchers {
       seeds = seeds.map(s => CrawlUri(s)),
       uriFilter = uriFilter,
       tests = tests,
-      obeyRobotRules = true,
       crawlDelayMillis = 0,
       crawlTimeoutMillis = 1,
       maxDepth = 1,

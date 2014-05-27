@@ -54,7 +54,6 @@ class TestPlayJsonConverters extends FlatSpec with ShouldMatchers with CustomMat
         FAccept(site.r)
       )),
       tests = Some(Seq(s"accept: $site")),
-      obeyRobotRules = true,
       crawlDelayMillis = 0,
       crawlTimeoutMillis = 10000,
       maxDepth = Int.MaxValue,
@@ -94,7 +93,6 @@ class TestPlayJsonConverters extends FlatSpec with ShouldMatchers with CustomMat
       "tests": [
         "accept: http://localhost"
       ],
-      "obeyRobotRules": true,
       "maxDepth": 10,
       "maxFetches": 3,
       "maxQueueSize": 1000,
