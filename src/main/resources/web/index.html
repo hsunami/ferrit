@@ -85,7 +85,7 @@
             </pre>
             <p>Curl example:</p>
             <code>
-              curl -X POST --header "Content-Type: application/json" -d "{...json ...}" "http://localhost:8080/crawlers"
+              curl -X POST --header "Content-Type: application/json" -d "{...json ...}" "http://localhost:6464/crawlers"
             </code>
         </td>
       </tr>
@@ -96,7 +96,7 @@
             <p>Updates an existing crawler configuration, the request entity should be a JSON crawl config.</p>
             <p>Curl example:</p>
             <code>
-              curl -X PUT --header "Content-Type: application/json" -d @crawl_config.json "http://localhost:8080/crawlers/{crawlerId}" 
+              curl -X PUT --header "Content-Type: application/json" -d @crawl_config.json "http://localhost:6464/crawlers/{crawlerId}" 
             </code>
         </td>
       </tr>
@@ -127,7 +127,7 @@
               }
             </pre>
             <code>
-              curl -X POST --header "Content-Type: application/json" -d @test_config_config.json "http://localhost:8080/crawlers/config_test"
+              curl -X POST --header "Content-Type: application/json" -d @test_config_config.json "http://localhost:6464/crawlers/config_test"
             </code>
         </td>
       </tr>
@@ -155,7 +155,7 @@
             <p>Starts a new crawl, the request body should be a JSON object with a crawler ID value.</p>
             <p>Curl example:</p>
             <code>
-            curl -X POST --header "Content-Type: application/json" -d "{\"id\":\"#crawlerId#\"}" "http://localhost:8080/job_processes"
+            curl -X POST --header "Content-Type: application/json" -d "{\"id\":\"#crawlerId#\"}" "http://localhost:6464/job_processes"
             </code>
         </td>
       </tr>

@@ -71,7 +71,7 @@ You can build/run Ferrit one of two ways:
     ferrit
 
     // To shutdown (in new console window)
-    curl -X POST localhost:8080/shutdown
+    curl -X POST localhost:6464/shutdown
 
 A succesful startup will display:
 
@@ -88,13 +88,23 @@ A succesful startup will display:
     ControlConnection - [Control connection] Refreshing schema
     ControlConnection - [Control connection] Successfully connected to /127.0.0.1
     Session - Adding /127.0.0.1 to list of queried hosts
-    Ferrit - Server started on http://localhost:8080
+    Ferrit - Server started on http://localhost:6464
+
+
+
+The host and port settings can be changed in: src/main/resources/application.conf.
+
+    app {
+      server {
+      host = "127.0.0.1"
+      port = 6464
+    }
 
 
 API Documentation
 -----------------
 
-> To view API documentation, start Ferrit and visit http://localhost:8080 in your browser. I will likely move them over to this page in a future update.
+> To view API documentation, start Ferrit and visit http://localhost:6464 in your browser. I will likely move them over to this page in a future update.
 
 
 How to Run a Crawl Job
@@ -112,7 +122,7 @@ Before issuing the POST, insert a user agent string value where you see the "use
 
 After you POST this configuration, copy the crawlerId property returned in the JSON response.
 
-    curl -XPOST "localhost:8080/crawlers" --header "Content-Type: application/json" -d '{
+    curl -XPOST "localhost:6464/crawlers" --header "Content-Type: application/json" -d '{
         "id": "new",
         "crawlerName": "The W3C",
         "seeds": [
@@ -141,9 +151,10 @@ After you POST this configuration, copy the crawlerId property returned in the J
 
 (2) Run a new crawl job using this new crawler configuration:
 
-    curl -XPOST "localhost:8080/job_processes" --header "Content-Type: application/json" -d '{
+    curl -XPOST "localhost:6464/job_processes" --header "Content-Type: application/json" -d '{
         "id": "#ID-OF-NEW-CRAWLER#"
     }'
+
 
 The job should start and finish after about a minute because only 10 resources are fetched.
 Check the Ferrit console log for progress ...
