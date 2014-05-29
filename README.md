@@ -9,11 +9,11 @@ I created it to help me learn more about small service design using Akka and the
 Features
 --------
 
-Ferrit is a [focused web crawler](http://en.wikipedia.org/wiki/Focused_crawler) with separate crawl configurations and jobs per website. For a whole-internet style of crawler there is Nutch.
+Ferrit is a [focused web crawler](http://en.wikipedia.org/wiki/Focused_crawler) with separate crawl configurations and jobs per website.
 
-* The service is managed via a REST/JSON
-* Data is stored in Cassandra - such as crawler configurations and job data
-* A novel feature: configuring regex URI filters can be tricky. Ferrit lets you verify your filter rules ahead of time with tests to ensure that resources will either be fetched or not fetched as expected.
+* The service is managed via a REST/JSON API
+* Data is stored in Cassandra - such as crawler configurations and job data.
+* Configuring URI filters can be tricky so Ferrit lets you verify them ahead of time with stored tests.
 
 
 What else is there?
@@ -42,7 +42,7 @@ Build and Run
 
 There is no binary file with this project so just checkout and build with sbt. It should only take a few minutes.
 
-> B.t.w. before starting Ferrit do make sure Cassandra is already running. The first time you run the project you'll need to create a new keyspace and tables in Cassandra. Just open this [Cassandra schema file](https://raw.githubusercontent.com/reggoodwin/ferrit/master/src/main/resources/cassandra-schema.sql), open the CQL console and paste the contents of the file into it.
+> B.t.w. before starting Ferrit do make sure Cassandra is already running. The first time you run the project you'll need to create a new keyspace and tables in Cassandra. Just run this script with CQLSH, e.g.: cqlsh -f {ferrit-home}/src/main/resources/cassandra-schema.sql
 
 You can build/run Ferrit one of two ways:
 
