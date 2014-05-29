@@ -1,9 +1,9 @@
 About
 -----
 
-Hi and welcome to the Ferrit project, an API driven web crawler service written in Scala using [Akka](http://akka.io), [Spray.IO](http://spray.io) and [Cassandra](http://cassandra.apache.org).
+Ferrit is an API driven web crawler service written in Scala using [Akka](http://akka.io), [Spray.IO](http://spray.io) and [Cassandra](http://cassandra.apache.org).
 
-I wrote Ferrit to help me learn about small service design using Akka and to help up my game with the *Functional Reactive* programming style. If you are also learning about these things then I hope you will find a few things of interest to you.
+I created it to help me learn more about small service design using Akka and the *Functional Reactive* programming style.
 
 
 Features
@@ -11,30 +11,30 @@ Features
 
 Ferrit is a [focused web crawler](http://en.wikipedia.org/wiki/Focused_crawler) with separate crawl configurations and jobs per website. For a whole-internet style of crawler there is Nutch.
 
-* There is a REST/JSON API for crawler configuration and starting/stopping jobs
-* All data is stored in Cassandra.
-* A novel feature: configuring URI filters can be tricky. Ferrit lets you verify your filter rules ahead of time with tests to ensure that resources will either be fetched or not fetched as expected.
+* The service is managed via a REST/JSON
+* Data is stored in Cassandra - such as crawler configurations and job data
+* A novel feature: configuring regex URI filters can be tricky. Ferrit lets you verify your filter rules ahead of time with tests to ensure that resources will either be fetched or not fetched as expected.
 
 
 What else is there?
 
-* *Politeness* is pretty important. Ferrit supports the [Robots Exclusion Standard](http://www.robotstxt.org) (robots.txt) and although a custom fetch delay can be set per job the final decision should be with the webmaster as to how fast you are allowed to crawl their site (the crawl-delay directive in robots.txt). Crawlers require a [User-agent](http://en.wikipedia.org/wiki/User_agent#Format_for_automated_agents_.28bots.29) property be set so that webmasters can contact the owner if necessary.
-* *Crawl depth* is supported as a way to restrict fetches to the top N pages of a given website
-* *URI filtering* is handy for deciding which resources should be fetched, e.g. fetch only HTML pages (uses accept/reject rules with regular expressions).
-* *URI normalization* - this is tricky to get right and I'm not entirely there yet. URI normalization is required to help reduce fetching of duplicate resources.
-* *Spider trap* prevention: for various reasons crawl jobs can run on indefinitely. Crawlers can be configured with basic safeguards such as a *crawl timeout* and *max fetches*.
+* *Politeness* is important. Ferrit supports the [Robots Exclusion Standard](http://www.robotstxt.org) (robots.txt). Although a custom fetch delay can be set per crawler configuration the final decision about the crawl delay is with the site webmaster as defined by the crawl-delay directive in robots.txt. Crawlers require a [User-agent](http://en.wikipedia.org/wiki/User_agent#Format_for_automated_agents_.28bots.29) property be set so that webmasters can contact the owner if necessary.
+* *Crawl depth* can be set to limit fetches to the top N pages of a given website
+* *URI filtering* is used to decide which resources should be fetched, e.g. fetch only HTML pages (uses accept/reject rules with regular expressions).
+* *URI normalization* - helps to reduce fetching of duplicate resources.
+* *Spider trap* prevention: in some cases jobs can run on indefinitely. Crawlers can be configured with basic safeguards such as a *crawl timeout* and *max fetches*.
 * *Concurrent job* support - this is pretty basic so far, needs more exploration.
 
 
 Requirements
 ------------
 
-This project is still at the [builds on my machine](http://www.buildsonmymachine.com/) stage (64 bit Windows 8) and needs to be independently tested in a Linux environment at Amazon EC2.
-
 * Java 7/8
 * Scala 2.10
 * SBT 0.13.2
 * Cassandra 2.0.3
+
+Runs on Linux and Windows.
 
 
 Build and Run
@@ -103,10 +103,8 @@ The host and port settings can be changed in: src/main/resources/application.con
     }
 
 
-API Documentation
------------------
+> Check that the service started correctly by visiting http://localhost:6464
 
-> To view API documentation, start Ferrit and visit http://localhost:6464 in your browser. I will likely move them over to this page in a future update.
 
 
 How to Run a Crawl Job
@@ -160,10 +158,122 @@ After you POST this configuration, copy the crawlerId property returned in the J
 The job should start and finish after about a minute because only 10 resources are fetched.
 Check the Ferrit console log for progress ...
 
-Good luck!
 
-> IMPORTANT -
+> Important -
 web crawlers get a bad reputation because they often crawl too aggressively so please use Ferrit politely. For the example above the maximum number of fetches is set to an artificially low 10 pages. Please don't increase this unless coincidentally you really intend to be crawling the W3C website! I test crawler functionality against a small website running on Apache locally before scaling up to real websites.
+
+API Documentation
+-----------------
+
+## Crawlers
+
+#### GET /crawlers
+
+Returns details of stored crawler configurations. Todo: add search options and paging.
+
+#### GET /crawlers/{crawlerId}
+
+Returns details of a stored crawler configuration.
+
+#### GET /crawlers/{crawlerId}/jobs
+
+Returns an array of recent jobs that run or are running for a crawler.
+
+#### GET /crawlers/{crawlerId}/jobs/{jobId}
+
+Returns details about a job.
+
+
+#### GET /crawlers/{crawlerId}/jobs/{jobId}/assets
+
+Retrieve asset metadata collected by a crawler during the given job.
+
+
+#### GET /crawlers/{crawlerId}/jobs/{jobId}/fetches
+
+Retrieve details about fetches for a particular job.
+
+
+#### POST /crawlers
+
+Store a new crawler configuration, the request body should be a JSON crawl config. See example above ...
+
+Properties:
+
+| Property | What it Does |
+| -------- | ------------ |
+| crawlerName | the display name for the crawler as would be shown in a UI. |
+| seeds | a string array, each being a starting URI to hint where the crawl should start. |
+| userAgent | a string that is included in the User-agent header sent with each fetch request. Is a mandatory field and required for crawl politeness. |
+| maxDepth | set a limit on the depth of the website crawled. |
+| maxFetches | set a limit on the total number of fetches during a crawl, helps to prevent unbounded crawls due to configuration error. |
+| crawlDelayMillis | this controls the delay between each fetch, e.g. 100. A crawl-delay directive found in robots.txt will take priority over this value. |
+| crawlTimeoutMillis | set a time limit on the crawl, helps to prevent unbounded crawls due to configuration error. |
+| maxRequestFails | set a limit on how fetches can fail before the crawler gives up. A value of 0.2 means stop if 20% of fetches have failed. |
+| maxQueueSize | set a limit on the size of the internal Frontier (aka fetch queue). Not especially useful, more to catch unusual crawl situations. |
+| uriFilter | controls which links are followed, can be a PriorityRejectUriFilter or FirstMatchUriFilter. |
+| tests | allows you to provide example URIs that should match or not match your URI filter rules. Means that you can change your URI filter rules without breaking the expected behaviour. |
+
+
+#### PUT /crawlers/{crawlerId}
+
+Updates an existing crawler configuration, the request entity should be a JSON crawl configuration.
+
+
+#### DELETE /crawlers/{crawlerId}
+
+Deletes an existing crawler configuration.
+Fetches and job history associated with the crawler will be removed automatically by Cassandra after the time to live has expired (set in application.conf).
+
+
+#### POST /crawlers/config_test
+
+Tests a crawler configuration and one or more additional URIs. In practice this is just testing the UriFilter assigned to the crawler configuration.
+
+    {
+        config: {
+            "id": "new",
+            "crawlerName": "Name of the Crawler", 
+            "seeds": [
+                "http://site.net"
+            ],
+            ... etc ...
+            },
+        uris: [uri1, uri2 ...]
+    }
+
+
+## Job Processes
+
+#### GET /job_processes
+
+Returns an array of all the running jobs known to the crawl manager.
+
+
+#### POST /job_processes
+
+Starts a new crawl, the request body should be a JSON object with a crawler ID value. See example above ...
+
+
+#### DELETE /job_processes/{jobId}
+
+Sends a stop request for the given running job.
+
+#### DELETE /job_processes
+    
+Sends a stop request for all running crawl jobs.
+
+
+## Crawl Jobs
+
+
+#### GET /jobs
+
+Returns an array of crawl jobs. Defaults to returning jobs that ran today. Jobs are ordered most recent first.
+
+To fetch jobs for other days include the date query string parameter with the given date format, e.g.
+
+    /jobs?date=YYYY-MM-DD
 
 
 More About Persistence
@@ -176,7 +286,7 @@ What's Missing?
 ---------------
 
 * Usability! Yes, running a crawler with curl is no fun and rather error prone. Fortunately there is a user interface project in the works that will be sure to work wonders ...
-* No [web scraping](http://en.wikipedia.org/wiki/Web_scraper) functionality added (yet), apart from automatic link extraction. So in a nutshell you can't actually do anything with this crawler except crawl.
+* No [web scraping](http://en.wikipedia.org/wiki/Web_scraper) functionality added (yet), apart from automatic link extraction. So in a nutshell you can't actually do anything with this crawler except crawl !!
 * No content deduplication support
 * Redirect responses from servers are not (yet) handled properly
 * Job clustering is not supported
@@ -199,8 +309,6 @@ Guess you already know about those other great open source web crawler projects 
 
 Known Issues
 ------------
-
-Tip of the iceberg:
 
 * Most of the websites I have crawled are fine except for a few where the crawl job just aborts. I need to to fix that.
 * Not all links extracted from pages can be parsed. When unparseable links are found they are logged but not added to the Frontier (aka queue) for fetching.
