@@ -1,7 +1,7 @@
 About
 -----
 
-Ferrit is an API driven web crawler service written in Scala using [Akka](http://akka.io), [Spray.IO](http://spray.io) and [Cassandra](http://cassandra.apache.org).
+Ferrit is an API driven web crawler service written in Scala using [Akka](http://akka.io), [Spray](http://spray.io) and [Cassandra](http://cassandra.apache.org).
 
 I created it to help me learn more about small service design using Akka and the *Functional Reactive* programming style.
 
@@ -159,8 +159,6 @@ The job should start and finish after about a minute because only 10 resources a
 Check the Ferrit console log for progress ...
 
 
-> Important -
-web crawlers get a bad reputation because they often crawl too aggressively so please use Ferrit politely. For the example above the maximum number of fetches is set to an artificially low 10 pages. Please don't increase this unless coincidentally you really intend to be crawling the W3C website! I test crawler functionality against a small website running on Apache locally before scaling up to real websites.
 
 API Documentation
 -----------------
