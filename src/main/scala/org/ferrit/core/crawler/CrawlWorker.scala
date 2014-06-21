@@ -19,6 +19,10 @@ import org.ferrit.core.robot.RobotRulesCacheActor.{Allow, DelayFor}
 import org.ferrit.core.util.{Counters, Media, MediaCounters, Stopwatch}
 
 
+/**
+ * This has become a big ball of mud that needs splitting up.
+ * Has too many responsibilities at the moment.
+ */
 class CrawlWorker(
 
   job: CrawlJob,
@@ -36,6 +40,7 @@ class CrawlWorker(
   import CrawlWorker._
 
   private [crawler] implicit val execContext = context.system.dispatcher
+  private [crawler] val scheduler = context.system.scheduler
   private [crawler] val log = Logging(context.system, getClass)
   private [crawler] val robotRequestTimeout = new Timeout(20.seconds)
   private [crawler] val supportedSchemes = Seq("http", "https")
@@ -49,10 +54,10 @@ class CrawlWorker(
     crawlStop = new DateTime().plus(config.crawlTimeoutMillis)
   )
   
-  override def receive = pending
+  override def receive = crawlPending
 
 
-  def pending: Receive = listenerManagement orElse {
+  def crawlPending: Receive = listenerManagement orElse {
     case Run =>
       val outcome = initCrawler
       outcome
@@ -60,7 +65,7 @@ class CrawlWorker(
         .map {reply => 
           reply match {
             case StartOkay(_, _) =>
-              context.become(running)
+              context.become(crawlRunning)
               gossip(reply)
               self ! NextDequeue
             case StartFailed(_, _) =>
@@ -69,62 +74,45 @@ class CrawlWorker(
         }
   }
 
-  def running: Receive = listenerManagement orElse internalMessages orElse {
-    
-    // Stopping is not immediate if crawler is part way through a request
-    case StopCrawl => state = state.stop
-
-  }
-
-  def internalMessages:Receive = {
+  def crawlRunning: Receive = listenerManagement orElse {
 
     case NextDequeue =>
-      if (state.alive) {
-        gameOver.query(config, state, fcounters, frontier.size) match {
-          case KeepOnTruckin => 
-            frontier.dequeue match {
-              case None => //dgossip(EmptyFrontier)
-              case Some(f) =>
-                delayFor(f.uri) map({delay =>
-                  gossip(FetchScheduled(f, delay))
-                  context.system.scheduler.scheduleOnce(
-                    delay.milliseconds, self, NextFetch(f)
-                  )
-                })
-            }
-          case otherOutcome =>
-            stopWith(Stopped(
-              otherOutcome, 
-              completeJob(otherOutcome, None)
-            ))
-        }
+        
+      val outcome: CrawlOutcome = gameOver.query(config, state, fcounters, frontier.size)
+      outcome match {
+        case KeepOnTruckin => scheduleNext
+        case otherOutcome => stopWith(Stopped(otherOutcome, completeJob(otherOutcome, None)))
       }
 
     case NextFetch(fe) => if (state.alive) fetchNext(fe)
 
+    case StopCrawl => state = state.stop // Stopping not immediate if in a fetch
+
   }
 
-  def stopWith(msg: Any):Unit = {
+  private def stopWith(msg: Any):Unit = {
     state = state.dead
     gossip(msg)
     context.stop(self)
   }
 
-  def stopWithFailure(t: Throwable):Unit = {
+  private def stopWithFailure(t: Throwable):Unit = {
     val outcome = InternalError("Crawler failed to complete: " + t.getLocalizedMessage, t)
-    stopWith(Stopped(outcome, completeJob(outcome, Some(t))))
+    stopWith(
+      Stopped(outcome, completeJob(outcome, Some(t)))
+    )
   }
-
-  /* = = = = = = = = Implementation  = = = = = = = = */
 
   private def initCrawler: Future[Started] = {
     try {
       config.validate
 
       val jobs = config.seeds.map(s => FetchJob(s, 0)).toSet
-      tryEnqueue(jobs)
+      enqueueFetchJobs(jobs)
         .map(_ => StartOkay("Started okay", job))
-        .recover({ case t => StartFailed(t, config) })
+        .recover({ 
+          case throwable => StartFailed(throwable, config) 
+        })
 
     } catch {
       case t: Throwable => Future.successful(StartFailed(t, config))
@@ -132,11 +120,13 @@ class CrawlWorker(
   }
 
   private def completeJob(outcome: CrawlOutcome, throwOpt: Option[Throwable]):CrawlJob = {
+    
+    val finished = new DateTime
     val message = throwOpt match {
       case Some(t) => outcome.message + ": " + t.getLocalizedMessage
       case None => outcome.message
     }
-    val finished = new DateTime
+
     job.copy(
       snapshotDate = new DateTime,
       finishedDate = Some(finished),
@@ -156,28 +146,31 @@ class CrawlWorker(
    * all the FetchJob are made BEFORE trying to access Frontier and UriCache
    * to prevent a race condition when accessing the Frontier.
    */
-  private def tryEnqueue(fetchJobs: Set[FetchJob]):Future[Unit] = {
+  private def enqueueFetchJobs(fetchJobs: Set[FetchJob]):Future[Unit] = {
+    
     val future:Future[Set[(FetchJob, CanFetch)]] = Future.sequence(
       fetchJobs.map({f => isFetchable(f)})
     )
+
     future.recoverWith({ case t => Future.failed(t) })
+
     future.map(
       _.map({pair =>
         val f = pair._1
         val d = pair._2
-        //dgossip(FetchDecision(f.uri, d))
+        dgossip(FetchDecision(f.uri, d))
         if (OkayToFetch == d) {
           frontier.enqueue(f) // only modify AFTER async fetch checks
           uriCache.put(f.uri) // mark URI as seen
-          //dgossip(FetchQueued(f))   
+          dgossip(FetchQueued(f))   
         }
       })
     )
   }
 
-  // Implementation note: check robot rules after UriFilter test
-  // to avoid unnecessary downloading of robots.txt files
-  // for sites that will never be visited anyway and robot fetch fails
+  // Must check robot rules after UriFilter test
+  // to avoid unnecessary downloading of robots.txt files for
+  // sites that will never be visited anyway and robot fetch fails
   // on unsupported schemes like mailto/ftp.
 
   private def isFetchable(f: FetchJob):Future[(FetchJob, CanFetch)] = {
@@ -207,6 +200,17 @@ class CrawlWorker(
 
     } catch {
       case t: Throwable => Future.failed(t)
+    }
+  }
+
+  private def scheduleNext:Unit = {
+    frontier.dequeue match {
+      case Some(f: FetchJob) =>
+        getFetchDelayFor(f.uri) map({delay =>
+          gossip(FetchScheduled(f, delay))
+          scheduler.scheduleOnce(delay.milliseconds, self, NextFetch(f))
+        })
+      case None => // empty frontier, code smell to fix
     }
   }
 
@@ -242,7 +246,7 @@ class CrawlWorker(
         case None => doNext
         case Some(parserResult) =>
           if (f.depth >= config.maxDepth) {
-            //dgossip(DepthLimit(f))
+            dgossip(DepthLimit(f))
             doNext
           } else {
 
@@ -261,7 +265,7 @@ class CrawlWorker(
             val jobs = uris.map(FetchJob(_, f.depth + 1))
 
             // must enqueue BEFORE next fetch
-            tryEnqueue(jobs)
+            enqueueFetchJobs(jobs)
               .map({_ => doNext})
               .recover({ case t => stopWithFailure(t) })
           }
@@ -300,10 +304,10 @@ class CrawlWorker(
     }
 
     fcounters = fcounters.increment(FetchAttempts)
-    //dgossip(FetchGo(f))
+    dgossip(FetchGo(f))
     
     httpClient.request(request).map({response =>
-        //dgossip(FetchResponse(uri, response.statusCode))
+        dgossip(FetchResponse(uri, response.statusCode))
         response
     }).recoverWith({
       case t: Throwable => onRequestFail(t)
@@ -345,7 +349,7 @@ class CrawlWorker(
    *
    * If both values are available then the longest is chosen.
    */
-  private def delayFor(uri: CrawlUri):Future[Long] = {
+  private def getFetchDelayFor(uri: CrawlUri):Future[Long] = {
     val defDelay = config.crawlDelayMillis
     robotRulesCache
       .ask(DelayFor(config.getUserAgent, uri.reader))(robotRequestTimeout)
