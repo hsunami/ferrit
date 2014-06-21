@@ -111,7 +111,7 @@ class CrawlerManager(
         httpClient,
         robotRulesCache,
         MultiParser.default,
-        new DefaultGameOver
+        new DefaultStopRule
       ))
 
     context.watch(crawler)

@@ -135,7 +135,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new ParrotHttpClient(Map.empty),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
 
     proxy ! Listen(self)
@@ -162,7 +162,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new LinkedListHttpClient(site, 2),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
 
     proxy ! Listen(self)
@@ -218,7 +218,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new ParrotHttpClient(responses),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
 
 
@@ -271,7 +271,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new ParrotHttpClient(responses),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
 
     crawler ! Listen(self)
@@ -302,7 +302,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new LinkedListHttpClient(site, totalPages),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
     
     proxy ! Listen(self)
@@ -355,7 +355,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new ParrotHttpClient(responses),
       makeRobotRulesCache(robotsCache),
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
 
     proxy ! Listen(self)
@@ -422,7 +422,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new ParrotHttpClient(responses),
       makeRobotRulesCache(robotsCache),
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
     
     proxy ! Listen(self)
@@ -478,7 +478,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new LinkedListHttpClient(site, totalPages),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
     
 
@@ -559,7 +559,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new ParrotHttpClient(responses),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
 
     
@@ -601,7 +601,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new LinkedListHttpClient(site, 10),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
     
     proxy !Listen(self)
@@ -664,7 +664,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       new ParrotHttpClient(responses),
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
 
     proxy !Listen(self)
@@ -717,7 +717,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       },
       mockRobotRulesCache,
       MultiParser.default,
-      new DefaultGameOver
+      new DefaultStopRule
     ))
     
     proxy !Listen(self)
@@ -744,7 +744,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
         new ParrotHttpClient(Map.empty),
         mockRobotRulesCache,
         MultiParser.default,
-        new DefaultGameOver
+        new DefaultStopRule
       ))
 
       proxy ! Listen(self)

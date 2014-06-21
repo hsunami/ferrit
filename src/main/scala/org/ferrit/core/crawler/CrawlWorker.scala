@@ -32,7 +32,7 @@ class CrawlWorker(
   httpClient: HttpClient,
   robotRulesCache: ActorRef,
   contentParser: ContentParser,
-  gameOver: GameOver
+  stopRule: StopRule
 
   ) extends Actor with Listeners {
 
@@ -78,9 +78,9 @@ class CrawlWorker(
 
     case NextDequeue =>
         
-      val outcome: CrawlOutcome = gameOver.query(config, state, fcounters, frontier.size)
+      val outcome: CrawlOutcome = stopRule.ask(config, state, fcounters, frontier.size)
       outcome match {
-        case KeepOnTruckin => scheduleNext
+        case KeepCrawling => scheduleNext
         case otherOutcome => stopWith(Stopped(otherOutcome, completeJob(otherOutcome, None)))
       }
 

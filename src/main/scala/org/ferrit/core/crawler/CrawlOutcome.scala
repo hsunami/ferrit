@@ -5,7 +5,7 @@ import org.ferrit.core.uri.{CrawlUri, FetchJob}
 import org.ferrit.core.model.CrawlJob
 
 sealed abstract class CrawlOutcome(val state: String, val message: String)
-object KeepOnTruckin extends CrawlOutcome("Continuing", "Keep crawling")
+object KeepCrawling extends CrawlOutcome("Continuing", "Keep crawling")
 object CompletedOkay extends CrawlOutcome("Completed", "Completed Okay")
 object StopRequested extends CrawlOutcome("Stopped", "Stop requested")
 object TooManyQueued extends CrawlOutcome("Aborted", "Too many URIs queued for crawling")

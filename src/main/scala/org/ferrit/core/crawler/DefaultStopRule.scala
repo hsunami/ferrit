@@ -2,10 +2,8 @@ package org.ferrit.core.crawler
 
 import org.ferrit.core.util.Counters
 
-/**
- * A basic implementation of the GameOver.
- */
-class DefaultGameOver extends GameOver {
+
+class DefaultStopRule extends StopRule {
   
   import CrawlWorker._
 
@@ -17,7 +15,7 @@ class DefaultGameOver extends GameOver {
   val MinFailCount = 5
 
   
-  override def query(
+  override def ask(
     c: CrawlConfig, 
     status: CrawlStatus, 
     ct: Counters, 
@@ -34,13 +32,13 @@ class DefaultGameOver extends GameOver {
               ct.get(FetchAttempts),
               ct.get(FetchFails))) TooManyFetchesFailed
 
-    else KeepOnTruckin
+    else KeepCrawling
   }
 
   /**
-   * Simple algorithm to figure out if crawler is failing too much 
-   * and should stop. Factored out to be more testable, at the
-   * expense of boilerplate method signature.
+   * A simple computation to decide if a crawler is failing too much 
+   * and should stop. Factored out to be more testable, at the expense
+   * of some boilerplate method signature.
    *
    * A fail percentage is calculated and if it exceeds the user-defined fail 
    * percentage threshold then the crawl is considered failed.
