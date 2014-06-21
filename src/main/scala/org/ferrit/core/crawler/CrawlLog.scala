@@ -16,7 +16,7 @@ import org.ferrit.core.util.TextFormatter._
  * be helpful with debugging, for without this feedback it is hard to 
  * know what the crawler is doing.
  */
-class CrawlConsoleLog extends Actor {
+class CrawlLog extends Actor {
   
   private [crawler] val log = Logging(context.system, getClass)
   private [crawler] val w = 80 // width of display

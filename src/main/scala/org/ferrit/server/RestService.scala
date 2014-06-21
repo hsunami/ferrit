@@ -20,7 +20,7 @@ import spray.util._ // to resolve "actorSystem"
 import reflect.ClassTag // workaround, see below
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import org.ferrit.core.crawler.{CrawlerManager, CrawlConfig, CrawlConsoleLog, CrawlerException}
+import org.ferrit.core.crawler.{CrawlerManager, CrawlConfig, CrawlLog, CrawlerException}
 import org.ferrit.core.crawler.{CrawlConfigValidator, CrawlConfigValidatorResults, CrawlConfigValidatorResult}
 import org.ferrit.core.crawler.CrawlerManager.{StartJob, JobStartFailed}
 import org.ferrit.core.crawler.CrawlerManager.{StopJob, StopAllJobs, StopAccepted}
@@ -202,7 +202,7 @@ class RestService(
           complete {
             crawlerDao.find(id.id) match {
               case Some(Crawler(crawlerId, config)) =>
-                val logger = context.actorOf(Props[CrawlConsoleLog])
+                val logger = context.actorOf(Props[CrawlLog])
                 val fetchLogger = context.actorOf(Props(classOf[Journal], daoFactory))    
                 crawlerManager
                   .ask(StartJob(config, Seq(logger, fetchLogger)))(startJobTimeout)

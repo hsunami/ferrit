@@ -64,7 +64,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
    *   proxy !Listen(logger)
    *
    */
-  def logger = system.actorOf(Props[CrawlConsoleLog])
+  def logger = system.actorOf(Props[CrawlLog])
 
   def mockRobotRulesCache = makeRobotRulesCache(new MockRobotRulesCache)
 

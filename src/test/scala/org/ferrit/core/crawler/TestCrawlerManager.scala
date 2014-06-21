@@ -31,7 +31,7 @@ class TestCrawlerManager extends FlatSpec with ShouldMatchers with BeforeAndAfte
   val node = "localhost"
   val userAgent = "Test Agent"
 
-  def logger = system.actorOf(Props[CrawlConsoleLog])
+  def logger = system.actorOf(Props[CrawlLog])
 
   override def afterAll():Unit = system.shutdown()
 
