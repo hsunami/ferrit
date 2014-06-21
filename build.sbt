@@ -60,6 +60,15 @@ mainClass in Revolver.reStart := Some("org.ferrit.server.Ferrit")
 Revolver.reLogTag := ""
 
 
+// ---------------- SBT Scoverage ----------------
+
+resolvers += Classpaths.sbtPluginReleases
+
+instrumentSettings
+
+parallelExecution in ScoverageTest := false
+
+
 // ---------------- SBT Dependency Graph Settings ----------------
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
