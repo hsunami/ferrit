@@ -154,7 +154,9 @@
             <p>Starts a new crawl, the request body should be a JSON object with a crawler ID value.</p>
             <p>Curl example:</p>
             <code>
-            curl -X POST --header "Content-Type: application/json" -d "{\"id\":\"#crawlerId#\"}" "http://localhost:6464/job_processes"
+            curl -X POST "http://localhost:6464/job_processes" --header "Content-Type: application/json" -d '{
+              "id": "#crawlerId#"
+            }'
             </code>
         </td>
       </tr>
