@@ -9,33 +9,30 @@ class TestFirstMatchUriFilter extends FlatSpec with ShouldMatchers {
 
   import UriFilter.implicitConvertStringToCrawlUri
 
-
-  behavior of "FirstMatchUriFilter"
-
   it should "disallow on empty rules to prevent unbounded crawls" in {
-    val uf = new FirstMatchUriFilter(Seq())
-    uf.accept("http://website1.com/") should equal (false)
-    uf.accept("http://sub.website1.com/") should equal (false)
+    val f = new FirstMatchUriFilter(Seq())
+    f.accept("http://website1.com/") should equal (false)
+    f.accept("http://sub.website1.com/") should equal (false)
   }
 
   it should "allow matching follows but disallow even if not explicitly rejected" in {
     
-    val uf = new FirstMatchUriFilter(Seq(
+    val f = new FirstMatchUriFilter(Seq(
       Accept("http://website1.com/".r)
     ))
 
-    uf.accept("http://website1.com/") should equal (true)
-    uf.accept("http://website2.com/") should equal (false)
-    uf.accept("http://sub.website1.com/") should equal (false)
+    f.accept("http://website1.com/") should equal (true)
+    f.accept("http://website2.com/") should equal (false)
+    f.accept("http://sub.website1.com/") should equal (false)
   }
 
   it should "only allow matches by prefix" in {
     
     val socialMediaUri = "https://social.media.site.com?uri=http://site.net/page1"
 
-    val uf = new FirstMatchUriFilter(Seq(Accept("http://site.net/".r)))
-    uf.accept("http://site.net/page1") should equal (true)
-    uf.accept(socialMediaUri) should equal (false)
+    val f = new FirstMatchUriFilter(Seq(Accept("http://site.net/".r)))
+    f.accept("http://site.net/page1") should equal (true)
+    f.accept(socialMediaUri) should equal (false)
 
     // Unlikely this would be wanted, but strictly speaking it should match
     val uf2 = new FirstMatchUriFilter(Seq(Accept(".*http://site.net/".r)))
@@ -45,27 +42,27 @@ class TestFirstMatchUriFilter extends FlatSpec with ShouldMatchers {
 
   it should "not allow when rejected or not explictly followed" in {
     
-    val uf = new FirstMatchUriFilter(Seq(
+    val f = new FirstMatchUriFilter(Seq(
       Reject("http://website1.com/".r)
     ))
 
-    uf.accept("http://website1.com/") should equal (false)
-    uf.accept("http://website2.com/") should equal (false)
-    uf.accept("http://sub.website1.com/") should equal (false)
+    f.accept("http://website1.com/") should equal (false)
+    f.accept("http://website2.com/") should equal (false)
+    f.accept("http://sub.website1.com/") should equal (false)
   }
 
   it should "allow certain follows" in {
     
-    val uf = new FirstMatchUriFilter(Seq(
+    val f = new FirstMatchUriFilter(Seq(
       Accept("http://website1.com/".r),
       Accept("http://sub.website1.com/".r)
     ))
 
-    uf.accept("http://website1.com/") should equal (true)
-    uf.accept("http://website1.com/page1") should equal (true)
-    uf.accept("http://website2.com/") should equal (false)
-    uf.accept("http://sub.website1.com/") should equal (true)
-    uf.accept("http://sub.website1.co.uk/") should equal (false)
+    f.accept("http://website1.com/") should equal (true)
+    f.accept("http://website1.com/page1") should equal (true)
+    f.accept("http://website2.com/") should equal (false)
+    f.accept("http://sub.website1.com/") should equal (true)
+    f.accept("http://sub.website1.co.uk/") should equal (false)
   }
 
   /**
@@ -74,25 +71,25 @@ class TestFirstMatchUriFilter extends FlatSpec with ShouldMatchers {
    * have the effect of obscuring the general simpler rules.
    */
   it should "specific reject rule overrides general follow rule" in {
-    val uf = new FirstMatchUriFilter(Seq(
+    val f = new FirstMatchUriFilter(Seq(
       Reject("http://website1.com/page2".r),
       Accept("http://website1.com".r)
     ))
-    uf.accept("http://website1.com/") should equal (true)
-    uf.accept("http://website1.com/page1") should equal (true)
-    uf.accept("http://website1.com/page2") should equal (false)
-    uf.accept("http://website1.com/page2etc") should equal (false)
+    f.accept("http://website1.com/") should equal (true)
+    f.accept("http://website1.com/page1") should equal (true)
+    f.accept("http://website1.com/page2") should equal (false)
+    f.accept("http://website1.com/page2etc") should equal (false)
   }
 
   it should "specific follow rule overrides general reject rule" in {
-    val uf = new FirstMatchUriFilter(Seq(
+    val f = new FirstMatchUriFilter(Seq(
       Accept("http://website1.com/page2".r),
       Reject("http://website1.com".r)
     ))
-    uf.accept("http://website1.com/") should equal (false)
-    uf.accept("http://website1.com/page1") should equal (false)
-    uf.accept("http://website1.com/page2") should equal (true)
-    uf.accept("http://website1.com/page2etc") should equal (true)
+    f.accept("http://website1.com/") should equal (false)
+    f.accept("http://website1.com/page1") should equal (false)
+    f.accept("http://website1.com/page2") should equal (true)
+    f.accept("http://website1.com/page2etc") should equal (true)
   }
 
   it should "handle all kinds of regex accept reject rules" in {
@@ -140,14 +137,14 @@ class TestFirstMatchUriFilter extends FlatSpec with ShouldMatchers {
 
   it should "illustrate valid and invalid JPEG file extension pattern" in {
   
-    val uf = new FirstMatchUriFilter(Seq(
+    val f = new FirstMatchUriFilter(Seq(
       Accept("""(?i)http://site.com/.*\.jpe?g$""".r)
     ))
-    uf.accept("http://site.com/other") should equal (false)
-    uf.accept("http://site.com/image.JPEG") should equal (true)
-    uf.accept("http://site.com/image.jpg") should equal (true)
-    uf.accept("http://site.com/image.jpeg") should equal (true)
-    uf.accept("http://site.com/image.jg") should equal (false)
+    f.accept("http://site.com/other") should equal (false)
+    f.accept("http://site.com/image.JPEG") should equal (true)
+    f.accept("http://site.com/image.jpg") should equal (true)
+    f.accept("http://site.com/image.jpeg") should equal (true)
+    f.accept("http://site.com/image.jg") should equal (false)
 
     new FirstMatchUriFilter(Seq(
       Accept("""\.jpg$""".r)
