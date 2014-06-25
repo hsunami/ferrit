@@ -45,11 +45,9 @@ class CrawlWorker(
   private [crawler] val robotRequestTimeout = new Timeout(20.seconds)
   private [crawler] val supportedSchemes = Seq("http", "https")
   private [crawler] val started = new DateTime
-  
   private [crawler] var fcounters = Counters() // fetch attempts
   private [crawler] var rcounters = Counters() // response codes
   private [crawler] var mcounters = MediaCounters() // count media types html, css etc
-
   private [crawler] var state = CrawlStatus(
     crawlStop = new DateTime().plus(config.crawlTimeoutMillis)
   )
@@ -225,22 +223,7 @@ class CrawlWorker(
 
     } yield {
 
-      gossip(FetchResult(
-        response.statusCode,
-        f,
-        job.copy(
-          snapshotDate = new DateTime,
-          duration = new Duration(started, new DateTime).getMillis,
-          urisSeen = uriCache.size,
-          urisQueued = frontier.size,
-          fetchCounters = fcounters.counters,
-          responseCounters = rcounters.counters,
-          mediaCounters = mcounters.counters
-        ),
-        response,
-        stopwatch.duration, // Combined fetch + parse not including enqueue time
-        parseResultOpt
-      ))
+      emitFetchResult(f, response, parseResultOpt, stopwatch.duration)
       
       parseResultOpt match {
         case None => doNext
@@ -271,6 +254,7 @@ class CrawlWorker(
           }
       }
     })
+
     result.recover({
       case t =>
         gossip(FetchError(f.uri, t))
@@ -313,6 +297,30 @@ class CrawlWorker(
       case t: Throwable => onRequestFail(t)
     })
 
+  }
+
+  private def emitFetchResult(
+    fetchJob: FetchJob, 
+    response: Response, 
+    result: Option[ParserResult],
+    duration: Long):Unit = {
+
+    gossip(FetchResult(
+      response.statusCode,
+      fetchJob,
+      job.copy(
+        snapshotDate = new DateTime,
+        duration = new Duration(started, new DateTime).getMillis,
+        urisSeen = uriCache.size,
+        urisQueued = frontier.size,
+        fetchCounters = fcounters.counters,
+        responseCounters = rcounters.counters,
+        mediaCounters = mcounters.counters
+      ),
+      response,
+      duration, // Represents combined fetch + parse not including enqueue time
+      result
+    ))
   }
 
   private def parseResponse(response: Response):Option[ParserResult] = {
