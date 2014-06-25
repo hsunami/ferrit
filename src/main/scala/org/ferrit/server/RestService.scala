@@ -20,7 +20,7 @@ import spray.util._ // to resolve "actorSystem"
 import reflect.ClassTag // workaround, see below
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import org.ferrit.core.crawler.{CrawlerManager, CrawlConfig, CrawlLog, CrawlerException}
+import org.ferrit.core.crawler.{CrawlerManager, CrawlConfig, CrawlLog, CrawlRejectException}
 import org.ferrit.core.crawler.{CrawlConfigValidator, CrawlConfigValidatorResults, CrawlConfigValidatorResult}
 import org.ferrit.core.crawler.CrawlerManager.{StartJob, JobStartFailed}
 import org.ferrit.core.crawler.CrawlerManager.{StopJob, StopAllJobs, StopAccepted}
@@ -257,7 +257,7 @@ class RestService(
 
   implicit def myExceptionHandler(implicit log: LoggingContext) = 
     ExceptionHandler {
-      case t: CrawlerException =>
+      case t: CrawlRejectException =>
         requestUri { uri =>
           val error = ErrorMessage(500, "Apologies, an internal error occurred")
           complete(StatusCodes.InternalServerError, error)

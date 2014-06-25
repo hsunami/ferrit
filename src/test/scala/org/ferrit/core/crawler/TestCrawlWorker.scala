@@ -751,7 +751,7 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
       proxy ! Run
 
       fishForMessage(1.second) {
-        case StartFailed(CrawlerException(msg), _) if (expectedMsg == msg) => true
+        case StartFailed(CrawlRejectException(msg), _) if (expectedMsg == msg) => true
         case _ => false
       }
     }

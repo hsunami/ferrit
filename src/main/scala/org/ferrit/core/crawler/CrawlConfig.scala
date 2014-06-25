@@ -109,6 +109,6 @@ case class CrawlConfig (
 
   }
 
-  private def failBecause(msg: String) = throw new CrawlerException(msg)
+  private def failBecause(msg: String) = throw new CrawlRejectException(msg)
 
 }

@@ -57,9 +57,9 @@ class CrawlerManager(
 
     case StartJob(config, listeners) =>
       if (jobs.size >= maxCrawlers) {
-        sender ! JobStartFailed(new CrawlerException(tooManyCrawlers))
+        sender ! JobStartFailed(new CrawlRejectException(tooManyCrawlers))
       } else if (jobs.exists(pair => pair._2.job.crawlerId == config.id)) {
-        sender ! JobStartFailed(new CrawlerException(crawlerExists))
+        sender ! JobStartFailed(new CrawlRejectException(crawlerExists))
       } else {
         val resolvedConfig = config.userAgent match {
           case Some(ua) => config
