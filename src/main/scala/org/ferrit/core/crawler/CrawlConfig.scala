@@ -1,9 +1,9 @@
 package org.ferrit.core.crawler
 
+import scala.util.{Failure, Success, Try}
 import org.ferrit.core.filter.UriFilter
 import org.ferrit.core.uri.CrawlUri
-import org.ferrit.core.crawler.CrawlAborted._
-
+import org.ferrit.core.crawler.CrawlConfig._
 
 case class CrawlConfig (
 
@@ -14,7 +14,8 @@ case class CrawlConfig (
 
   /**
    * The User-Agent header sent to web servers during a fetch to identify
-   * the crawler. This must set this before starting a crawl.
+   * the crawler. This must set this before starting a crawl. If not set,
+   * the default user-agent property in application.conf is used instead.
    */
   userAgent: Option[String],
   
@@ -85,30 +86,43 @@ case class CrawlConfig (
 
 ) {
   
-  def getUserAgent = userAgent match {
-    case Some(ua) if ua != null && ua.trim.nonEmpty => ua
-    case _ => failBecause(UserAgentMissing)
+  def getUserAgent:String = userAgent.getOrElse("")
+  
+  def validated:Try[Boolean] = {
+    
+    def because(reason: String) = CrawlRejectException(reason)
+
+    if (getUserAgent.trim.isEmpty) {
+      Failure(because(UserAgentMissing))
+
+    } else if (seeds == null || seeds.isEmpty) {
+      Failure(because(SeedsAreMissing))
+
+    } else if (!seeds.forall(uriFilter.accept)) {
+      val explanation = seeds.map(uriFilter.explain).mkString(" and ")
+      Failure(because(SeedsAreRejected.format(explanation)))
+
+    } else {
+      Success(true)
+    }
+    
   }
 
-  def validate:Unit = {
-          
-    getUserAgent
+}
 
-    if (uriFilter == null) {
-      failBecause(UriFilterMissing)
-    }
+object CrawlConfig {
+  
+  val UserAgentMissing = 
+    "Please set a sensible userAgent value in your crawler configuration." + 
+    "This is used to form a User-agent header during HTTP fetch requests " +
+    "to help identify your crawler to the web server. Some web servers will " +
+    "block requests if a user agent is not defined. " + 
+    "The user agent is also used when evaluating Robots Exclusion rules."
 
-    if (seeds == null || seeds.isEmpty) {
-      failBecause(SeedsAreMissing)
-    }
+  val SeedsAreMissing = 
+    "seed URIs are required to start a crawler"
 
-    if (!seeds.forall(uriFilter.accept)) {
-      val advice = seeds.map(uriFilter.explain).mkString(" and ")
-      failBecause(SeedsAreRejected.format(advice))
-    }
-
-  }
-
-  private def failBecause(msg: String) = throw new CrawlRejectException(msg)
+  val SeedsAreRejected = 
+    "The crawler URI filter rejected the seeds: %s"
 
 }

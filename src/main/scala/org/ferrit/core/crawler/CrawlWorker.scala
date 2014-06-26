@@ -7,6 +7,7 @@ import akka.util.Timeout
 import akka.routing.{Listeners, Deafen, WithListeners}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.{Failure,Success}
 import org.joda.time.{DateTime, Duration}
 import org.ferrit.core.filter.UriFilter
 import org.ferrit.core.uri.{CrawlUri, Frontier, FetchJob, UriCache}
@@ -101,21 +102,15 @@ class CrawlWorker(
     )
   }
 
-  private def initCrawler: Future[Started] = {
-    try {
-      config.validate
-
+  private def initCrawler: Future[Started] = config.validated match {  
+    case Failure(t) => Future.successful(StartFailed(t, config))
+    case Success(b) =>
       val jobs = config.seeds.map(s => FetchJob(s, 0)).toSet
       enqueueFetchJobs(jobs)
         .map(_ => StartOkay("Started okay", job))
-        .recover({ 
-          case throwable => StartFailed(throwable, config) 
-        })
-
-    } catch {
-      case t: Throwable => Future.successful(StartFailed(t, config))
-    }
+        .recover({ case throwable => StartFailed(throwable, config) })
   }
+  
 
   private def completeJob(outcome: CrawlOutcome, throwOpt: Option[Throwable]):CrawlJob = {
     

@@ -5,7 +5,6 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import play.api.libs.json._
 import org.ferrit.core.crawler.{CrawlConfig, CrawlRejectException}
-import org.ferrit.core.crawler.CrawlAborted._
 import org.ferrit.core.filter.FirstMatchUriFilter
 import org.ferrit.core.filter.FirstMatchUriFilter.{Accept => FAccept, Reject => FReject}
 import org.ferrit.core.filter.PriorityRejectUriFilter.{Accept => PAccept, Reject => PReject}

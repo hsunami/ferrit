@@ -124,7 +124,7 @@ class TestCrawlerManager extends FlatSpec with ShouldMatchers with BeforeAndAfte
 
     manager ! StartJob(config, NoLogger)
     fishForMessage(1.second) { 
-      case JobStartFailed(CrawlRejectException(CrawlAborted.UserAgentMissing)) => true 
+      case JobStartFailed(CrawlRejectException(CrawlConfig.UserAgentMissing)) => true 
     }
 
   }

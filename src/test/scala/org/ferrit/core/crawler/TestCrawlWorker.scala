@@ -757,31 +757,12 @@ class TestCrawlWorker extends FlatSpec with ShouldMatchers with BeforeAndAfterAl
     }
   }
 
-  it should "abort on bad CrawlConfig (missing user agent)" in new FailedCrawl {
-    def badAgent(agent: Option[String]) = {
-      testFailingCrawler(
-        makeConfig("http://site.net").copy(userAgent = agent),
-        CrawlAborted.UserAgentMissing
-      )
-    }
-    badAgent(null)
-    badAgent(Some(null))
-    badAgent(Some(""))
-    badAgent(Some(" "))
-  }
-
-  it should "abort on bad CrawlConfig (missing seeds)" in new FailedCrawl {
+  it should "abort when a bad CrawlConfig is discovered" in new FailedCrawl {
+    // see TestCrawlConfig for fuller testing
     testFailingCrawler(
-      makeConfig("http://site.net").copy(seeds = null),
-      CrawlAborted.SeedsAreMissing
-    )
-  }
-
-  it should "abort on bad CrawlConfig (missing UriFilter)" in new FailedCrawl {
-    testFailingCrawler(
-      makeConfig("http://site.net").copy(uriFilter = null),
-      CrawlAborted.UriFilterMissing
-    )
+        makeConfig("http://site.net").copy(userAgent = None),
+        CrawlConfig.UserAgentMissing
+    )  
   }
 
   /**
