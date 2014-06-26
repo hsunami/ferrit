@@ -3,7 +3,8 @@ package org.ferrit.core.json
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala.util.matching.Regex
-import org.ferrit.core.crawler.{CrawlConfig, CrawlConfigValidatorResults, CrawlConfigValidatorResult}
+import org.ferrit.core.crawler.{CrawlConfig, CrawlConfigTester}
+import org.ferrit.core.crawler.CrawlConfigTester.{Results, Result}
 import org.ferrit.core.filter._
 import org.ferrit.core.model.{CrawlJob, DocumentMetaData, FetchLogEntry}
 import org.ferrit.core.util.{Media, KeyValueParser}
@@ -109,8 +110,8 @@ object PlayJsonImplicits {
   implicit val crawlConfigReads = Json.reads[CrawlConfig]
   implicit val crawlConfigWrites = Json.writes[CrawlConfig]
 
-  implicit val crawlConfigTestResultWrites = Json.writes[CrawlConfigValidatorResult]
-  implicit val crawlConfigTestResultsWrites = Json.writes[CrawlConfigValidatorResults]
+  implicit val crawlConfigTestResultWrites = Json.writes[CrawlConfigTester.Result]
+  implicit val crawlConfigTestResultsWrites = Json.writes[CrawlConfigTester.Results]
 
   implicit val documentMetaReads = Json.reads[DocumentMetaData]
   implicit val documentMetaWrites = Json.writes[DocumentMetaData]

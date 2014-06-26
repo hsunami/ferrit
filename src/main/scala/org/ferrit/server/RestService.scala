@@ -21,7 +21,8 @@ import reflect.ClassTag // workaround, see below
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.ferrit.core.crawler.{CrawlerManager, CrawlConfig, CrawlLog, CrawlRejectException}
-import org.ferrit.core.crawler.{CrawlConfigValidator, CrawlConfigValidatorResults, CrawlConfigValidatorResult}
+import org.ferrit.core.crawler.CrawlConfigTester
+import org.ferrit.core.crawler.CrawlConfigTester.{Results, Result}
 import org.ferrit.core.crawler.CrawlerManager.{StartJob, JobStartFailed}
 import org.ferrit.core.crawler.CrawlerManager.{StopJob, StopAllJobs, StopAccepted}
 import org.ferrit.core.crawler.CrawlerManager.{JobsQuery, JobsInfo}
@@ -112,7 +113,7 @@ class RestService(
         entity(as[CrawlConfig]) { config =>
           complete {
             if ("config_test" == crawlerId) {
-              val results: CrawlConfigValidatorResults = CrawlConfigValidator.testConfig(config)
+              val results: CrawlConfigTester.Results = CrawlConfigTester.testConfig(config)
               results.allPassed match {
                 case true => StatusCodes.OK -> results
                 case false => StatusCodes.BadRequest -> results
